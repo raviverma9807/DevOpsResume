@@ -1,16 +1,16 @@
 trigger:
-- master
+- master   # or main if that's your branch
 
 pool:
-  name: Default   # your self-hosted agent
+  name: Default   # self-hosted agent
 
 steps:
 - task: NodeTool@0
   inputs:
-    versionSpec: '18.x'   # install Node.js runtime
+    versionSpec: '18.x'
   displayName: 'Install Node.js'
 
 - script: |
     npm install -g @azure/static-web-apps-cli
-    swa deploy ./ --deployment-token $(deployment_token)
+    swa deploy ./ --deployment-token $(deployment_token) --app-location "/"
   displayName: 'Deploy Static Web App'
