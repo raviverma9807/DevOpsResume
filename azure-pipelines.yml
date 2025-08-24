@@ -1,31 +1,16 @@
 trigger:
-- master   # or master, depending on your branch
+- master
 
 pool:
-  name: Default   # use your self-hosted agent pool name
+  name: Default   # your self-hosted agent
 
 steps:
-# Install Azure CLI if not already present (Windows agent)
-- powershell: |
-    if (-not (Get-Command az -ErrorAction SilentlyContinue)) {
-      Write-Host "Installing Azure CLI..."
-      Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile .\AzureCLI.msi
-      Start-Process msiexec.exe -Wait -ArgumentList '/I AzureCLI.msi /quiet'
-    }
-    az --version
-  displayName: "Ensure Azure CLI is installed"
-
-# Deploy to Azure Static Web App
-- task: AzureCLI@2
+- task: NodeTool@0
   inputs:
-    azureSubscription: 'azure-staticwebapp-conn'   # Replace with the service connection you created in DevOps
-    scriptType: 'pscore'
-    scriptLocation: 'inlineScript'
-    inlineScript: |
-      echo "Deploying Static Web App..."
-      az staticwebapp upload `
-        --name "DevOpsResume" `
-        --resource-group "DevOpsResume_group-8626" `
-        --source "$(Build.SourcesDirectory)" `
-        --verbose
-  displayName: "Deploy to Azure Static Web App"
+    versionSpec: '18.x'   # install Node.js runtime
+  displayName: 'Install Node.js'
+
+- script: |
+    npm install -g @azure/static-web-apps-cli
+    swa deploy ./ --deployment-token $(deployment_token)
+  displayName: 'Deploy Static Web App'
