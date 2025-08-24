@@ -1,15 +1,31 @@
 trigger:
-- master   # or master, depending on your branch name
+- master   # or master, depending on your branch
 
 pool:
-  name: Default   # use your self-hosted agent
+  name: Default   # use your self-hosted agent pool name
 
 steps:
-- checkout: self
+# Install Azure CLI if not already present (Windows agent)
+- powershell: |
+    if (-not (Get-Command az -ErrorAction SilentlyContinue)) {
+      Write-Host "Installing Azure CLI..."
+      Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile .\AzureCLI.msi
+      Start-Process msiexec.exe -Wait -ArgumentList '/I AzureCLI.msi /quiet'
+    }
+    az --version
+  displayName: "Ensure Azure CLI is installed"
 
-- task: AzureStaticWebApp@0
+# Deploy to Azure Static Web App
+- task: AzureCLI@2
   inputs:
-    app_location: "/"            # root folder with index.html
-    api_location: ""             # no API, leave blank
-    output_location: ""          # no build output, leave blank
-    azure_static_web_apps_api_token: $(azure_static_web_apps_api_token)
+    azureSubscription: 'azure-staticwebapp-conn'   # Replace with the service connection you created in DevOps
+    scriptType: 'pscore'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      echo "Deploying Static Web App..."
+      az staticwebapp upload `
+        --name "DevOpsResume" `
+        --resource-group "DevOpsResume_group-8626" `
+        --source "$(Build.SourcesDirectory)" `
+        --verbose
+  displayName: "Deploy to Azure Static Web App"
