@@ -1,0 +1,12 @@
+trigger:
+- master   # change to your default branch name if needed
+
+pool:
+  name: Default   # your self-hosted agent pool
+
+steps:
+- task: AzureStaticWebApp@0
+  inputs:
+    app_location: "/"                 # repo root
+    output_location: ""               # no build output
+    azure_static_web_apps_api_token: $(deployment_token)
